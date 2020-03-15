@@ -1,0 +1,44 @@
+version: '3.7'
+volumes:
+  postgres-data:  
+  cache:
+  log:  
+  vendor:
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgress
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+  rabbitmq:
+    image: rabbitmq:3.6.5-management
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+    #- ./RabbitMQ/data:/var/lib/rabbitmq:rw
+      - ./RabbitMQ/definitions.json:/opt/definitions.json:ro
+      - ./RabbitMQ/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
+  guestbook:
+    build:
+      context: .
+    ports:
+      - 80:80
+    environment: 
+      - APACHE_DOCUMENT_ROOT=/var/www/html/guestbook/public  
+    volumes:
+      - .:/var/www/html/
+      - ./apache/config/vhost.conf:/etc/apache2/sites-available/000-default.conf
+      - cache:/var/www/html/guestbook/var/cache
+      - log:/var/www/html/guestbook/var/log
+      - vendor:/var/www/html/guestbook/vendor
+    networks:
+      - default
